@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Point GPS Collector - Firebase (Corretto)</title>
+    <title>Point GPS Collector - Versione Corretta</title>
     
+    <!-- Tailwind CSS per lo stile -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
     
+    <!-- Leaflet.js per la mappa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
+    <!-- Proj4js per la conversione delle coordinate -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
 
+    <!-- JSZip per creare file .zip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
+    <!-- Font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        html, body { scroll-behavior: smooth; }
         html.dark { color-scheme: dark; }
         body { font-family: 'Inter', sans-serif; }
         #map { height: 450px; border-radius: 0.75rem; z-index: 10; cursor: grab; }
@@ -35,6 +41,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 transition-colors duration-300">
 
+    <!-- Bottone Dark Mode -->
     <button id="dark-mode-toggle" class="fixed top-4 right-4 z-50 p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-md">
         <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
         <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
@@ -42,15 +49,18 @@
 
     <div class="container mx-auto max-w-4xl p-4 sm:p-6">
 
+        <!-- Intestazione -->
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400">Point GPS Collector</h1>
         </header>
         
+        <!-- Messaggio di Errore Configurazione -->
         <div id="firebase-config-error" class="hidden bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-md mb-8" role="alert">
             <p class="font-bold">Configurazione Firebase Mancante!</p>
-            <p>Per favore, inserisci la tua configurazione di Firebase nello script HTML per attivare la condivisione. Segui le istruzioni fornite in precedenza per ottenere le tue chiavi.</p>
+            <p>Per favore, inserisci la tua configurazione di Firebase nello script HTML per attivare la condivisione.</p>
         </div>
 
+        <!-- Sezione Iniziale / Condivisione -->
         <div id="initial-view" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8 text-center">
             <h2 class="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100">Benvenuto!</h2>
             <p class="text-slate-600 dark:text-slate-400 mb-6">Crea un nuovo rilievo per iniziare a raccogliere punti, oppure unisciti a una sessione esistente incollando il link nel browser.</p>
@@ -58,6 +68,7 @@
         </div>
         
         <div id="active-rilievo-view" class="hidden">
+            <!-- Sezione Impostazioni Bottoni -->
             <div id="settings-button-container" class="mb-8 text-center space-x-2 sm:space-x-4">
                 <button id="open-settings-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 inline-flex items-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -70,6 +81,7 @@
             </div>
         </div>
         
+        <!-- Pannello Impostazioni -->
         <div id="settings-panel" class="hidden bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
              <h2 class="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100">Definizione Attributi</h2>
             <p class="text-slate-600 dark:text-slate-400 mb-6">Definisci i campi per la raccolta dati. Puoi attivare fino a 5 attributi più un campo foto.</p>
@@ -89,7 +101,9 @@
             </div>
         </div>
 
+        <!-- Contenuto Principale -->
         <div id="main-content" class="hidden">
+            <!-- Sezione di Rilievo -->
             <div id="new-survey-section" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
                 <h2 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Nuovo Rilievo</h2>
                 <button id="detect-point-btn" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center space-x-2">
@@ -104,6 +118,7 @@
                 </div>
             </div>
 
+            <!-- Sezione Mappa e Dati -->
             <div id="map-data-section" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
                  <h2 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Anteprima Rilievi</h2>
                  <div id="map-container" class="mb-6"><div id="map"></div></div>
@@ -120,15 +135,16 @@
                 </div>
             </div>
             
+            <!-- Pannello di Modifica -->
             <div id="edit-panel" class="hidden bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
-                <h3 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Modifica Punto <span id="editing-point-id"></span></h3>
+                <h3 class="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-400">Modifica Punto <span id="editing-point-id"></span></h3>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Trascina il punto sulla mappa o modifica i campi sottostanti.</p>
                 <div class="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg mb-4"><h3 class="font-semibold text-blue-800 dark:text-blue-300">Coordinate:</h3><p id="edit-coordinates-display" class="text-sm font-mono"></p></div>
                 <div id="edit-attributes-form" class="space-y-4 mb-4"></div>
                 <div><label for="edit-comments" class="block text-sm font-medium text-slate-600 dark:text-slate-300">Commenti</label><textarea id="edit-comments" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md"></textarea></div>
                 <div class="mt-6 flex justify-end space-x-3">
                     <button id="cancel-edit-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg">Annulla</button>
-                    <button id="save-edit-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salva Modifiche</button>
+                    <button id="save-edit-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg">Salva Modifiche</button>
                 </div>
             </div>
         </div>
@@ -138,6 +154,7 @@
         </footer>
     </div>
 
+    <!-- Modale di conferma eliminazione -->
     <div id="delete-confirm-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0">
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         <div class="modal-content relative bg-white dark:bg-slate-800 w-full max-w-sm p-6 rounded-2xl shadow-xl transform scale-95">
@@ -146,20 +163,6 @@
             <div class="flex justify-end space-x-3">
                 <button id="cancel-delete-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg">Annulla</button>
                 <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Elimina</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="share-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0">
-        <div class="absolute inset-0 bg-black bg-opacity-50" id="share-modal-backdrop"></div>
-        <div class="modal-content relative bg-white dark:bg-slate-800 w-full max-w-lg p-6 rounded-2xl shadow-xl transform scale-95">
-            <h2 class="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-100">Condividi Rilievo</h2>
-            <p class="text-slate-600 dark:text-slate-400 mb-4">Copia e invia questo link per condividere il rilievo. Chiunque abbia il link potrà visualizzare e modificare i dati.</p>
-            <div class="relative">
-                <input type="text" id="share-link-input" readonly class="w-full p-2 pr-10 border border-slate-300 dark:border-slate-600 rounded-md bg-slate-50 dark:bg-slate-700 font-mono text-sm">
-                <button id="copy-link-btn" class="absolute top-1/2 right-2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                </button>
             </div>
         </div>
     </div>
@@ -298,13 +301,15 @@
                 const marker = L.marker([point.lat, point.lng]).addTo(markersLayer);
                 let attributesHtml = '';
                 const activeDefinitions = attributeDefinitions.filter(def => def.isActive);
-                point.attributes.forEach((attr, i) => {
-                    if (activeDefinitions[i]) {
-                        attributesHtml += `<b>${activeDefinitions[i].title}:</b> ${attr}<br>`;
-                    }
-                });
-                // *** NOTA: La chiamata onclick qui funziona perché le funzioni sono state esposte globalmente ***
-                marker.bindPopup(`<b>Punto ${point.index}</b><br><hr class="my-1"><b>WGS84:</b> ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}<br><b>LV95:</b> ${point.lv95_e.toFixed(2)}, ${point.lv95_n.toFixed(2)}<br><hr class="my-1">${attributesHtml}<a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); startEditingPoint('${point.id}')">Modifica</a>`);
+                if (point.attributes) {
+                    point.attributes.forEach((attr, i) => {
+                        if (activeDefinitions[i]) {
+                            attributesHtml += `<b>${activeDefinitions[i].title}:</b> ${attr}<br>`;
+                        }
+                    });
+                }
+                
+                marker.bindPopup(`<b>Punto ${point.index}</b><br><hr class="my-1"><b>WGS84:</b> ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}<br><b>LV95:</b> ${point.lv95_e.toFixed(2)}, ${point.lv95_n.toFixed(2)}<br><hr class="my-1">${attributesHtml}<a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); window.startEditingPoint('${point.id}')">Modifica</a>`);
                 bounds.push([point.lat, point.lng]);
             });
 
@@ -328,8 +333,8 @@
                             <span class="font-mono text-xs block text-slate-600 dark:text-slate-400">LV95: E ${point.lv95_e.toFixed(2)}, N ${point.lv95_n.toFixed(2)}</span>
                         </div>
                         <div class="flex flex-col items-center space-y-2 ml-2">
-                            <button onclick="startEditingPoint('${point.id}')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Modifica</button>
-                            <button onclick="openDeleteModal('${point.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50">
+                            <button onclick="window.startEditingPoint('${point.id}')" class="text-xs text-yellow-600 dark:text-yellow-400 hover:underline">Modifica</button>
+                            <button onclick="window.openDeleteModal('${point.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                             </button>
                         </div>
@@ -375,10 +380,10 @@
                     detectPointBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>Collect GPS Point</span>`;
                 },
                 (error) => {
-                    showNotification("Errore geolocalizzazione.", 'error');
+                    showNotification("Errore geolocalizzazione: " + error.message, 'error');
                     detectPointBtn.disabled = false;
                     detectPointBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>Collect GPS Point</span>`;
-                }, { enableHighAccuracy: true }
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
@@ -438,6 +443,7 @@
             const defsString = `#DEFS:${JSON.stringify({attributeDefinitions, photoAttribute})}\n`;
 
             const escapeCsvValue = (value) => {
+                if (value === null || value === undefined) return '';
                 const strValue = String(value);
                 if (strValue.includes(',') || strValue.includes('"') || strValue.includes('\n')) {
                     return `"${strValue.replace(/"/g, '""')}"`;
@@ -445,20 +451,20 @@
                 return strValue;
             };
 
-            const csvRows = points.map((p, index) => {
+            const csvRows = points.map((p) => {
                 let photoFilename = '';
                 if (p.photo && photoAttribute.isActive) {
                     photoFilename = `punto_${p.index}.jpg`;
                     const base64Data = p.photo.split(',')[1];
                     photoFolder.file(photoFilename, base64Data, {base64: true});
                 }
-                const row = [
+                const rowData = [
                     p.lat, p.lng, p.lv95_e.toFixed(3), p.lv95_n.toFixed(3),
-                    ...p.attributes.map(escapeCsvValue)
+                    ...(p.attributes || []).map(escapeCsvValue)
                 ];
-                if(photoAttribute.isActive) row.push(photoFilename);
-                row.push(escapeCsvValue(p.commenti));
-                return row.join(',');
+                if(photoAttribute.isActive) rowData.push(photoFilename);
+                rowData.push(escapeCsvValue(p.commenti));
+                return rowData.join(',');
             });
 
             const csvContent = [defsString, headers.join(','), ...csvRows].join('\n');
@@ -475,11 +481,10 @@
         }
 
         function startEditingPoint(pointId) {
-            const pointIndex = points.findIndex(p => p.id === pointId);
-            if(pointIndex === -1) return;
+            const point = points.find(p => p.id === pointId);
+            if(!point) return;
             
             editingPointId = pointId;
-            const point = points[pointIndex];
             originalEditingPointPosition = L.latLng(point.lat, point.lng);
             
             newSurveySection.classList.add('hidden');
@@ -490,6 +495,7 @@
             editCoordinatesDisplay.innerHTML = `<span class="block">WGS84: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</span><span class="block">LV95: E ${point.lv95_e.toFixed(3)}, N ${point.lv95_n.toFixed(3)}</span>`;
             renderAttributeForms(editAttributesForm, point.attributes, point.photo);
             editCommentsInput.value = point.commenti;
+
             markersLayer.eachLayer(function(layer) {
                 if (layer.getLatLng().equals(originalEditingPointPosition, 1e-9)) {
                     editingMarker = layer;
@@ -503,11 +509,11 @@
                 }
             });
             map.setView(originalEditingPointPosition, map.getZoom());
-            editPanel.scrollIntoView({ behavior: 'smooth' });
+            editPanel.scrollIntoView();
         }
 
         function cancelEditing() {
-            if (editingMarker) {
+            if (editingMarker && originalEditingPointPosition) {
                 editingMarker.setLatLng(originalEditingPointPosition);
                 editingMarker.dragging.disable();
                 editingMarker.off('dragend');
@@ -515,12 +521,17 @@
             editPanel.classList.add('hidden');
             newSurveySection.classList.remove('hidden');
             settingsButtonContainer.classList.remove('hidden');
-            editingPointId = null; editingMarker = null; originalEditingPointPosition = null;
-            updateMap();
+            
+            // Reset state
+            editingPointId = null; 
+            editingMarker = null; 
+            originalEditingPointPosition = null;
+            updateMap(); // Ridisegna la mappa per ripristinare i popup
         }
 
         async function saveEditing() {
-            if (editingPointId === null) return;
+            if (!editingPointId || !editingMarker) return;
+
             const newLatLng = editingMarker.getLatLng();
             const newLv95 = convertWgs84ToLv95(newLatLng.lat, newLatLng.lng);
             const attributes = [];
@@ -528,9 +539,17 @@
             
             const photoInput = document.getElementById('photo-capture-input-edit');
             const pointIndex = points.findIndex(p => p.id === editingPointId);
-            const photoData = photoInput ? photoInput.dataset.photoData : points[pointIndex].photo;
+            const photoData = photoInput ? photoInput.dataset.photoData : (points[pointIndex] ? points[pointIndex].photo : null);
 
-            const updatedPoint = { lat: newLatLng.lat, lng: newLatLng.lng, lv95_e: newLv95.e, lv95_n: newLv95.n, attributes, photo: photoData, commenti: editCommentsInput.value.trim() };
+            const updatedPoint = { 
+                lat: newLatLng.lat, 
+                lng: newLatLng.lng, 
+                lv95_e: newLv95.e, 
+                lv95_n: newLv95.n, 
+                attributes, 
+                photo: photoData, 
+                commenti: editCommentsInput.value.trim() 
+            };
             
             try {
                 const pointRef = doc(db, 'rilievi', rilievoId, 'points', editingPointId);
@@ -541,14 +560,8 @@
                 showNotification('Errore nell\'aggiornamento del punto.', 'error');
             }
             
-            if (editingMarker) {
-                editingMarker.dragging.disable();
-                editingMarker.off('dragend');
-            }
-            editPanel.classList.add('hidden');
-            newSurveySection.classList.remove('hidden');
-            settingsButtonContainer.classList.remove('hidden');
-            editingPointId = null; editingMarker = null; originalEditingPointPosition = null;
+            // Chiudi e ripristina l'interfaccia
+            cancelEditing();
         }
 
         function openDeleteModal(pointId) {
@@ -678,7 +691,7 @@
             attributeDefinitions.forEach((def) => {
                 if (!def.isActive) return;
 
-                const value = existingValues[activeAttributeCounter] || '';
+                const value = existingValues && existingValues[activeAttributeCounter] ? existingValues[activeAttributeCounter] : '';
                 let inputHtml = '';
                 const baseClasses = "attribute-input mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500";
 
@@ -688,13 +701,14 @@
                         break;
                     case 'boolean':
                         inputHtml = `<select class="${baseClasses}">
+                            <option value=""></option>
                             <option value="Sì" ${value === 'Sì' ? 'selected' : ''}>Sì</option>
                             <option value="No" ${value === 'No' ? 'selected' : ''}>No</option>
                         </select>`;
                         break;
                     case 'list':
                         const options = def.values.map(v => `<option value="${v}" ${value === v ? 'selected' : ''}>${v}</option>`).join('');
-                        inputHtml = `<select class="${baseClasses}">${options}</select>`;
+                        inputHtml = `<select class="${baseClasses}"><option value=""></option>${options}</select>`;
                         break;
                     case 'text':
                     default:
@@ -817,9 +831,11 @@
             unsubscribeConfig = onSnapshot(configRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const config = docSnap.data().config;
-                    attributeDefinitions = config.attributeDefinitions;
-                    photoAttribute = config.photoAttribute;
-                    renderAttributeForms(newAttributesForm);
+                    if (config) {
+                        attributeDefinitions = config.attributeDefinitions;
+                        photoAttribute = config.photoAttribute;
+                        renderAttributeForms(newAttributesForm);
+                    }
                 }
             });
 
@@ -830,10 +846,15 @@
                 querySnapshot.forEach((doc) => {
                     fetchedPoints.push({ id: doc.id, ...doc.data() });
                 });
-                points = fetchedPoints.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds)
-                                    .map((p, i) => ({...p, index: i + 1}));
-                updateMap();
-                updatePointsList();
+                points = fetchedPoints
+                    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
+                    .map((p, i) => ({...p, index: i + 1}));
+                
+                // Se non si sta modificando, aggiorna la mappa e la lista
+                if (!editingPointId) {
+                    updateMap();
+                    updatePointsList();
+                }
             });
         }
 
@@ -877,12 +898,11 @@
 
             initializeMap();
             
-            // Check for Firebase config
-            if (firebaseConfig.apiKey === "...") {
+            if (!firebaseConfig || firebaseConfig.apiKey === "...") {
                 firebaseConfigError.classList.remove('hidden');
                 initialView.classList.add('hidden');
                 settingsButtonContainer.classList.add('hidden');
-                return; // Stop execution if config is missing
+                return;
             }
 
             try {
@@ -897,7 +917,7 @@
                     errorMessage = "Il metodo di accesso 'Anonimo' non è abilitato. Vai sulla tua console Firebase, seleziona 'Authentication', vai su 'Metodi di accesso' e abilita il provider 'Anonimo'.";
                 } else if (error.code === 'auth/api-key-not-valid') {
                     errorTitle = "API Key non valida!";
-                    errorMessage = "La API Key nella configurazione di Firebase non è corretta. Controlla di averla copiata correttamente dal tuo progetto Firebase.";
+                    errorMessage = "La API Key nella configurazione di Firebase non è corretta.";
                 }
 
                 firebaseConfigError.innerHTML = `<p class="font-bold">${errorTitle}</p><p>${errorMessage}</p>`;
@@ -924,10 +944,7 @@
             handleHashChange(); // Esegui al caricamento
         });
 
-        // *** CORREZIONE: Esponi le funzioni necessarie allo scope globale ***
-        // Le funzioni definite in uno script di tipo "module" non sono globali per impostazione predefinita.
-        // Per renderle richiamabili dagli attributi `onclick` nell'HTML,
-        // dobbiamo assegnarle esplicitamente all'oggetto `window`.
+        // Rendi le funzioni globalmente accessibili per gli attributi onclick
         window.startEditingPoint = startEditingPoint;
         window.openDeleteModal = openDeleteModal;
 
