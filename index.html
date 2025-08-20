@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Point GPS Collector</title>
+    <title>Point GPS Collector - Versione Corretta</title>
     
     <!-- Tailwind CSS per lo stile -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,8 +43,8 @@
 
     <!-- Bottone Dark Mode -->
     <button id="dark-mode-toggle" class="fixed top-4 right-4 z-50 p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-md">
-        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
     </button>
 
     <div class="container mx-auto max-w-4xl p-4 sm:p-6">
@@ -263,11 +263,22 @@
 
         // --- Funzioni ---
         
+        /**
+         * Converte coordinate da WGS84 a LV95.
+         * @param {number} lat Latitudine in WGS84.
+         * @param {number} lng Longitudine in WGS84.
+         * @returns {{e: number, n: number}} Coordinate in LV95.
+         */
         function convertWgs84ToLv95(lat, lng) {
             const lv95 = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
             return { e: lv95[0], n: lv95[1] };
         }
 
+        /**
+         * Mostra una notifica a schermo.
+         * @param {string} message Il messaggio da mostrare.
+         * @param {'success'|'error'} type Il tipo di notifica.
+         */
         function showNotification(message, type = 'success') {
             notificationMessage.textContent = message;
             notification.className = `fixed bottom-5 right-5 text-white py-2 px-5 rounded-lg shadow-xl opacity-0 transform translate-y-10 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
@@ -277,6 +288,49 @@
                 notification.classList.remove('opacity-100', 'transform-none');
                 notification.classList.add('opacity-0', 'translate-y-10');
             }, 4000);
+        }
+
+        /**
+         * Ridimensiona e comprime un'immagine codificata in base64.
+         * @param {string} base64Str La stringa base64 dell'immagine originale.
+         * @param {number} maxWidth La larghezza massima dell'immagine.
+         * @param {number} quality La qualità della compressione JPEG (da 0 a 1).
+         * @returns {Promise<string>} Una Promise che si risolve con la stringa base64 dell'immagine ridimensionata.
+         */
+        function resizeImage(base64Str, maxWidth = 1920, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                // Se l'immagine è già piccola (sotto ~1MB), non fare nulla.
+                if (base64Str.length < 1300000) {
+                    resolve(base64Str);
+                    return;
+                }
+
+                const img = new Image();
+                img.src = base64Str;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let { width, height } = img;
+
+                    // Se l'immagine è più grande della larghezza massima, ridimensionala
+                    if (width > maxWidth) {
+                        height = (maxWidth / width) * height;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Converte in JPEG con la qualità specificata
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    resolve(resizedBase64);
+                };
+                img.onerror = (err) => {
+                    console.error("Errore nel caricamento dell'immagine per il ridimensionamento.", err);
+                    reject("Impossibile caricare l'immagine per ridimensionarla.");
+                };
+            });
         }
 
         function initializeMap() {
@@ -289,9 +343,7 @@
         }
 
         function updateMap() {
-            if (map) {
-                map.invalidateSize();
-            }
+            if (map) map.invalidateSize();
             
             markersLayer.clearLayers();
             if (points.length === 0) return;
@@ -304,7 +356,7 @@
                 if (point.attributes) {
                     point.attributes.forEach((attr, i) => {
                         if (activeDefinitions[i]) {
-                            attributesHtml += `<b>${activeDefinitions[i].title}:</b> ${attr}<br>`;
+                            attributesHtml += `<b>${activeDefinitions[i].title}:</b> ${attr || 'N/D'}<br>`;
                         }
                     });
                 }
@@ -522,11 +574,10 @@
             newSurveySection.classList.remove('hidden');
             settingsButtonContainer.classList.remove('hidden');
             
-            // Reset state
             editingPointId = null; 
             editingMarker = null; 
             originalEditingPointPosition = null;
-            updateMap(); // Ridisegna la mappa per ripristinare i popup
+            updateMap(); 
         }
 
         async function saveEditing() {
@@ -560,7 +611,6 @@
                 showNotification('Errore nell\'aggiornamento del punto.', 'error');
             }
             
-            // Chiudi e ripristina l'interfaccia
             cancelEditing();
         }
 
@@ -595,7 +645,6 @@
             closeDeleteModal();
         }
 
-        // --- Funzioni per Impostazioni Attributi ---
         function openSettingsPanel() {
             attributesDefinitionContainer.innerHTML = '';
             attributeDefinitions.forEach((def, index) => {
@@ -750,17 +799,31 @@
 
                 const handleFileChange = (e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            captureInput.dataset.photoData = event.target.result;
-                            previewImg.src = event.target.result;
+                    if (!file) return;
+
+                    previewImg.src = 'https://placehold.co/100x100/e2e8f0/94a3b8?text=...'; // Placeholder di caricamento
+
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        try {
+                            const originalBase64 = event.target.result;
+                            const resizedBase64 = await resizeImage(originalBase64);
+                            
+                            captureInput.dataset.photoData = resizedBase64;
+                            previewImg.src = resizedBase64;
                             captureBtn.classList.add('hidden');
                             attachBtn.classList.add('hidden');
                             removeBtn.classList.remove('hidden');
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                        } catch (error) {
+                            showNotification(error, "error");
+                            previewImg.src = 'https://placehold.co/100x100/e2e8f0/94a3b8?text=Errore';
+                        }
+                    };
+                    reader.onerror = () => {
+                        showNotification("Impossibile leggere il file.", "error");
+                        previewImg.src = 'https://placehold.co/100x100/e2e8f0/94a3b8?text=Errore';
+                    };
+                    reader.readAsDataURL(file);
                 };
 
                 captureInput.addEventListener('change', handleFileChange);
@@ -784,7 +847,6 @@
             }
         }
         
-        // --- Funzioni per Dark Mode ---
         function toggleDarkMode(isDark) {
             if (isDark) {
                 document.documentElement.classList.add('dark');
@@ -797,7 +859,6 @@
             }
         }
 
-        // --- Logica di Inizializzazione e Gestione Rilievo ---
         async function createNewRilievo() {
             try {
                 const newRilievoRef = await addDoc(collection(db, 'rilievi'), {
@@ -821,12 +882,9 @@
             activeRilievoView.classList.remove('hidden');
 
             setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
-                }
+                if (map) map.invalidateSize();
             }, 10);
 
-            // Listener per la configurazione
             const configRef = doc(db, 'rilievi', rilievoId);
             unsubscribeConfig = onSnapshot(configRef, (docSnap) => {
                 if (docSnap.exists()) {
@@ -839,7 +897,6 @@
                 }
             });
 
-            // Listener per i punti
             const pointsRef = collection(db, 'rilievi', rilievoId, 'points');
             unsubscribePoints = onSnapshot(pointsRef, (querySnapshot) => {
                 const fetchedPoints = [];
@@ -850,7 +907,6 @@
                     .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
                     .map((p, i) => ({...p, index: i + 1}));
                 
-                // Se non si sta modificando, aggiorna la mappa e la lista
                 if (!editingPointId) {
                     updateMap();
                     updatePointsList();
@@ -888,7 +944,6 @@
 
         // --- Inizializzazione ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Dark Mode
             const savedTheme = localStorage.getItem('darkMode');
             if (savedTheme) {
                 toggleDarkMode(savedTheme === 'true');
@@ -941,14 +996,12 @@
             };
 
             window.addEventListener('hashchange', handleHashChange);
-            handleHashChange(); // Esegui al caricamento
+            handleHashChange();
         });
 
-        // Rendi le funzioni globalmente accessibili per gli attributi onclick
         window.startEditingPoint = startEditingPoint;
         window.openDeleteModal = openDeleteModal;
 
     </script>
 </body>
-
 </html>
