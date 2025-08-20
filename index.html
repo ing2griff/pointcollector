@@ -5,26 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Point GPS Collector - Firebase (Corretto)</title>
     
-    <!-- Tailwind CSS per lo stile -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
     
-    <!-- Leaflet.js per la mappa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Proj4js per la conversione delle coordinate -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
 
-    <!-- what3words API -->
-    <script src="https://assets.what3words.com/sdk/v3/what3words.javascript.sdk.js?key=2O8LB1BS"></script>
-
-    <!-- JSZip per creare file .zip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <!-- Font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -43,7 +35,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 transition-colors duration-300">
 
-    <!-- Bottone Dark Mode -->
     <button id="dark-mode-toggle" class="fixed top-4 right-4 z-50 p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-md">
         <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
         <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
@@ -51,18 +42,15 @@
 
     <div class="container mx-auto max-w-4xl p-4 sm:p-6">
 
-        <!-- Intestazione -->
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400">Point GPS Collector</h1>
         </header>
         
-        <!-- Messaggio di Errore Configurazione -->
         <div id="firebase-config-error" class="hidden bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-md mb-8" role="alert">
             <p class="font-bold">Configurazione Firebase Mancante!</p>
             <p>Per favore, inserisci la tua configurazione di Firebase nello script HTML per attivare la condivisione. Segui le istruzioni fornite in precedenza per ottenere le tue chiavi.</p>
         </div>
 
-        <!-- Sezione Iniziale / Condivisione -->
         <div id="initial-view" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8 text-center">
             <h2 class="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100">Benvenuto!</h2>
             <p class="text-slate-600 dark:text-slate-400 mb-6">Crea un nuovo rilievo per iniziare a raccogliere punti, oppure unisciti a una sessione esistente incollando il link nel browser.</p>
@@ -70,7 +58,6 @@
         </div>
         
         <div id="active-rilievo-view" class="hidden">
-            <!-- Sezione Impostazioni Bottoni -->
             <div id="settings-button-container" class="mb-8 text-center space-x-2 sm:space-x-4">
                 <button id="open-settings-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 inline-flex items-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -83,7 +70,6 @@
             </div>
         </div>
         
-        <!-- Pannello Impostazioni -->
         <div id="settings-panel" class="hidden bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
              <h2 class="text-2xl font-semibold mb-4 text-slate-800 dark:text-slate-100">Definizione Attributi</h2>
             <p class="text-slate-600 dark:text-slate-400 mb-6">Definisci i campi per la raccolta dati. Puoi attivare fino a 5 attributi più un campo foto.</p>
@@ -103,9 +89,7 @@
             </div>
         </div>
 
-        <!-- Contenuto Principale -->
         <div id="main-content" class="hidden">
-            <!-- Sezione di Rilievo -->
             <div id="new-survey-section" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
                 <h2 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Nuovo Rilievo</h2>
                 <button id="detect-point-btn" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center space-x-2">
@@ -120,21 +104,7 @@
                 </div>
             </div>
 
-            <!-- Pannello di Modifica -->
-            <div id="edit-panel" class="hidden bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
-                <h3 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Modifica Punto <span id="editing-point-id"></span></h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Trascina il punto sulla mappa o modifica i campi sottostanti.</p>
-                <div class="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg mb-4"><h3 class="font-semibold text-blue-800 dark:text-blue-300">Coordinate:</h3><p id="edit-coordinates-display" class="text-sm font-mono"></p></div>
-                <div id="edit-attributes-form" class="space-y-4 mb-4"></div>
-                <div><label for="edit-comments" class="block text-sm font-medium text-slate-600 dark:text-slate-300">Commenti</label><textarea id="edit-comments" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md"></textarea></div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button id="cancel-edit-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg">Annulla</button>
-                    <button id="save-edit-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salva Modifiche</button>
-                </div>
-            </div>
-
-            <!-- Sezione Mappa e Dati -->
-            <div id="map-data-section" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+            <div id="map-data-section" class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
                  <h2 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Anteprima Rilievi</h2>
                  <div id="map-container" class="mb-6"><div id="map"></div></div>
                  <div id="data-section" class="hidden">
@@ -149,6 +119,18 @@
                     Nessun punto rilevato. Clicca su "Collect GPS Point" per iniziare.
                 </div>
             </div>
+            
+            <div id="edit-panel" class="hidden bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-green-700 dark:text-green-400">Modifica Punto <span id="editing-point-id"></span></h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Trascina il punto sulla mappa o modifica i campi sottostanti.</p>
+                <div class="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg mb-4"><h3 class="font-semibold text-blue-800 dark:text-blue-300">Coordinate:</h3><p id="edit-coordinates-display" class="text-sm font-mono"></p></div>
+                <div id="edit-attributes-form" class="space-y-4 mb-4"></div>
+                <div><label for="edit-comments" class="block text-sm font-medium text-slate-600 dark:text-slate-300">Commenti</label><textarea id="edit-comments" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md"></textarea></div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="cancel-edit-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg">Annulla</button>
+                    <button id="save-edit-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salva Modifiche</button>
+                </div>
+            </div>
         </div>
         
         <footer class="text-center py-6">
@@ -156,7 +138,6 @@
         </footer>
     </div>
 
-    <!-- Modale di conferma eliminazione -->
     <div id="delete-confirm-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0">
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         <div class="modal-content relative bg-white dark:bg-slate-800 w-full max-w-sm p-6 rounded-2xl shadow-xl transform scale-95">
@@ -169,7 +150,6 @@
         </div>
     </div>
     
-    <!-- Modale Condividi -->
     <div id="share-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0">
         <div class="absolute inset-0 bg-black bg-opacity-50" id="share-modal-backdrop"></div>
         <div class="modal-content relative bg-white dark:bg-slate-800 w-full max-w-lg p-6 rounded-2xl shadow-xl transform scale-95">
@@ -280,18 +260,6 @@
 
         // --- Funzioni ---
         
-        async function convertCoordsToW3w(lat, lng) {
-            try {
-                const response = await what3words.convertTo3wa({ lat, lng }, 'it');
-                return response.words || 'Indirizzo non trovato';
-            } catch (error) {
-                console.error("Errore API what3words:", error);
-                const errorMessage = error.error?.message || 'Errore di connessione';
-                showNotification(`Errore w3w: ${errorMessage}`, 'error');
-                return 'Errore API';
-            }
-        }
-
         function convertWgs84ToLv95(lat, lng) {
             const lv95 = proj4('EPSG:4326', 'EPSG:2056', [lng, lat]);
             return { e: lv95[0], n: lv95[1] };
@@ -336,7 +304,7 @@
                     }
                 });
                 // *** NOTA: La chiamata onclick qui funziona perché le funzioni sono state esposte globalmente ***
-                marker.bindPopup(`<b>Punto ${point.index}</b><br><hr class="my-1"><b>WGS84:</b> ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}<br><b>LV95:</b> ${point.lv95_e.toFixed(2)}, ${point.lv95_n.toFixed(2)}<br><b>w3w:</b> ///${point.w3w}<br><hr class="my-1">${attributesHtml}<a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); startEditingPoint('${point.id}')">Modifica</a>`);
+                marker.bindPopup(`<b>Punto ${point.index}</b><br><hr class="my-1"><b>WGS84:</b> ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}<br><b>LV95:</b> ${point.lv95_e.toFixed(2)}, ${point.lv95_n.toFixed(2)}<br><hr class="my-1">${attributesHtml}<a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); startEditingPoint('${point.id}')">Modifica</a>`);
                 bounds.push([point.lat, point.lng]);
             });
 
@@ -358,7 +326,6 @@
                             <span class="font-semibold text-blue-600 dark:text-blue-400">Punto ${point.index}</span> 
                             <span class="font-mono text-xs block text-slate-600 dark:text-slate-400">WGS84: ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}</span>
                             <span class="font-mono text-xs block text-slate-600 dark:text-slate-400">LV95: E ${point.lv95_e.toFixed(2)}, N ${point.lv95_n.toFixed(2)}</span>
-                            <span class="font-mono text-xs block text-slate-600 dark:text-slate-400">w3w: ///${point.w3w}</span>
                         </div>
                         <div class="flex flex-col items-center space-y-2 ml-2">
                             <button onclick="startEditingPoint('${point.id}')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Modifica</button>
@@ -375,7 +342,7 @@
             }
         }
 
-        async function handleDetectPoint() {
+        function handleDetectPoint() {
             if (!navigator.geolocation) {
                 showNotification('La geolocalizzazione non è supportata.', 'error'); return;
             }
@@ -385,10 +352,9 @@
             if (accuracyCircle) map.removeLayer(accuracyCircle);
 
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
+                (position) => {
                     currentCoordinates = { lat: position.coords.latitude, lng: position.coords.longitude };
                     const lv95Coords = convertWgs84ToLv95(currentCoordinates.lat, currentCoordinates.lng);
-                    const w3wAddress = await convertCoordsToW3w(currentCoordinates.lat, currentCoordinates.lng);
                     
                     accuracyCircle = L.circle([position.coords.latitude, position.coords.longitude], {
                         radius: position.coords.accuracy,
@@ -398,8 +364,7 @@
                     }).addTo(map);
                     map.fitBounds(accuracyCircle.getBounds(), { padding: [50, 50] });
 
-                    coordinatesDisplay.innerHTML = `<span class="block">WGS84: ${currentCoordinates.lat.toFixed(6)}, ${currentCoordinates.lng.toFixed(6)} (±${position.coords.accuracy.toFixed(1)}m)</span><span class="block">LV95: E ${lv95Coords.e.toFixed(3)}, N ${lv95Coords.n.toFixed(3)}</span><span class="block">w3w: ///${w3wAddress}</span>`;
-                    currentCoordinates.w3w = w3wAddress;
+                    coordinatesDisplay.innerHTML = `<span class="block">WGS84: ${currentCoordinates.lat.toFixed(6)}, ${currentCoordinates.lng.toFixed(6)} (±${position.coords.accuracy.toFixed(1)}m)</span><span class="block">LV95: E ${lv95Coords.e.toFixed(3)}, N ${lv95Coords.n.toFixed(3)}</span>`;
                     
                     renderAttributeForms(newAttributesForm);
                     commentsInput.value = '';
@@ -438,7 +403,6 @@
                 ...currentCoordinates, 
                 lv95_e: lv95Coords.e, 
                 lv95_n: lv95Coords.n, 
-                w3w: currentCoordinates.w3w || 'N/D', 
                 attributes, 
                 photo: photoData, 
                 commenti: commentsInput.value.trim(),
@@ -467,7 +431,7 @@
             const photoFolder = zip.folder("foto");
 
             const activeDefinitions = attributeDefinitions.filter(def => def.isActive);
-            let headers = ['latitudine_wgs84', 'longitudine_wgs84', 'E_lv95', 'N_lv95', 'what3words', ...activeDefinitions.map(def => def.title)];
+            let headers = ['latitudine_wgs84', 'longitudine_wgs84', 'E_lv95', 'N_lv95', ...activeDefinitions.map(def => def.title)];
             if(photoAttribute.isActive) headers.push('foto');
             headers.push('commenti');
             
@@ -489,7 +453,7 @@
                     photoFolder.file(photoFilename, base64Data, {base64: true});
                 }
                 const row = [
-                    p.lat, p.lng, p.lv95_e.toFixed(3), p.lv95_n.toFixed(3), p.w3w,
+                    p.lat, p.lng, p.lv95_e.toFixed(3), p.lv95_n.toFixed(3),
                     ...p.attributes.map(escapeCsvValue)
                 ];
                 if(photoAttribute.isActive) row.push(photoFilename);
@@ -521,10 +485,9 @@
             newSurveySection.classList.add('hidden');
             settingsButtonContainer.classList.add('hidden');
             editPanel.classList.remove('hidden');
-            mapDataSection.classList.remove('hidden');
-
+            
             editingPointIdSpan.textContent = `#${point.index}`;
-            editCoordinatesDisplay.innerHTML = `<span class="block">WGS84: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</span><span class="block">LV95: E ${point.lv95_e.toFixed(3)}, N ${point.lv95_n.toFixed(3)}</span><span class="block">w3w: ///${point.w3w}</span>`;
+            editCoordinatesDisplay.innerHTML = `<span class="block">WGS84: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</span><span class="block">LV95: E ${point.lv95_e.toFixed(3)}, N ${point.lv95_n.toFixed(3)}</span>`;
             renderAttributeForms(editAttributesForm, point.attributes, point.photo);
             editCommentsInput.value = point.commenti;
             markersLayer.eachLayer(function(layer) {
@@ -532,15 +495,15 @@
                     editingMarker = layer;
                     map.closePopup();
                     editingMarker.dragging.enable();
-                    editingMarker.on('dragend', async function(event) {
+                    editingMarker.on('dragend', function(event) {
                         const newLatLng = event.target.getLatLng();
                         const newLv95 = convertWgs84ToLv95(newLatLng.lat, newLatLng.lng);
-                        const newW3w = await convertCoordsToW3w(newLatLng.lat, newLatLng.lng);
-                        editCoordinatesDisplay.innerHTML = `<span class="block">WGS84: ${newLatLng.lat.toFixed(6)}, ${newLatLng.lng.toFixed(6)}</span><span class="block">LV95: E ${newLv95.e.toFixed(3)}, N ${newLv95.n.toFixed(3)}</span><span class="block">w3w: ///${newW3w}</span>`;
+                        editCoordinatesDisplay.innerHTML = `<span class="block">WGS84: ${newLatLng.lat.toFixed(6)}, ${newLatLng.lng.toFixed(6)}</span><span class="block">LV95: E ${newLv95.e.toFixed(3)}, N ${newLv95.n.toFixed(3)}</span>`;
                     });
                 }
             });
             map.setView(originalEditingPointPosition, map.getZoom());
+            editPanel.scrollIntoView({ behavior: 'smooth' });
         }
 
         function cancelEditing() {
@@ -560,7 +523,6 @@
             if (editingPointId === null) return;
             const newLatLng = editingMarker.getLatLng();
             const newLv95 = convertWgs84ToLv95(newLatLng.lat, newLatLng.lng);
-            const newW3w = await convertCoordsToW3w(newLatLng.lat, newLatLng.lng);
             const attributes = [];
             document.querySelectorAll('#edit-attributes-form .attribute-input').forEach(input => attributes.push(input.value));
             
@@ -568,7 +530,7 @@
             const pointIndex = points.findIndex(p => p.id === editingPointId);
             const photoData = photoInput ? photoInput.dataset.photoData : points[pointIndex].photo;
 
-            const updatedPoint = { lat: newLatLng.lat, lng: newLatLng.lng, lv95_e: newLv95.e, lv95_n: newLv95.n, w3w: newW3w, attributes, photo: photoData, commenti: editCommentsInput.value.trim() };
+            const updatedPoint = { lat: newLatLng.lat, lng: newLatLng.lng, lv95_e: newLv95.e, lv95_n: newLv95.n, attributes, photo: photoData, commenti: editCommentsInput.value.trim() };
             
             try {
                 const pointRef = doc(db, 'rilievi', rilievoId, 'points', editingPointId);
